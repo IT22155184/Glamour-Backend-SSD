@@ -57,15 +57,124 @@ class AuthController {
 
       const result = await authService.authenticate(email, password, userType);
     
+      if (result.success) {
+        return res.status(result.status).json({
+          success: result.success,
+          accessToken: result.accessToken,
+          refreshToken: result.refreshToken,
+          user: result.user,
+          message: result.message,
+          userType: userType
+        });
+      } else {
+        return res.status(result.status).json({
+          success: result.success,
+          message: result.message
+        });
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+
+  /**
+   * Refresh access token using refresh token
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   */
+  async refreshToken(req, res) {
+    try {
+      const { refreshToken } = req.body;
+      
+      if (!refreshToken) {
+        return res.status(400).json({ message: "Refresh token is required" });
+      }
+
+      const result = await authService.refreshAccessToken(refreshToken);
       
       return res.status(result.status).json({
         success: result.success,
-        token: result.token,
-        message: result.message,
-        userType: userType
+        accessToken: result.accessToken,
+        message: result.message
       });
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("Token refresh error:", error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+
+  /**
+   * Logout user by removing refresh token
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   */
+  async logout(req, res) {
+    try {
+      const { refreshToken } = req.body;
+      const userId = req.user?._id; // Assuming user is attached by middleware
+      
+      if (!refreshToken) {
+        return res.status(400).json({ message: "Refresh token is required" });
+      }
+
+      const result = await authService.logout(refreshToken, userId);
+      
+      return res.status(result.status).json({
+        success: result.success,
+        message: result.message
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+
+  /**
+   * Logout from all devices
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   */
+  async logoutAll(req, res) {
+    try {
+      const userId = req.user?._id; // Assuming user is attached by middleware
+      
+      if (!userId) {
+        return res.status(400).json({ message: "User not authenticated" });
+      }
+
+      const result = await authService.logoutAll(userId);
+      
+      return res.status(result.status).json({
+        success: result.success,
+        message: result.message
+      });
+    } catch (error) {
+      console.error("Logout all error:", error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+
+  /**
+   * Get current user profile
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   */
+  async getProfile(req, res) {
+    try {
+      const user = req.user;
+      
+      if (!user) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      return res.json({
+        success: true,
+        user: user.toJSON(),
+        message: "Profile retrieved successfully"
+      });
+    } catch (error) {
+      console.error("Get profile error:", error);
       return res.status(500).json({ message: "Internal Server Error" });
     }
   }
