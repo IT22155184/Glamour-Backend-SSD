@@ -6,7 +6,7 @@ import { PassThrough } from 'stream';
 class PaymentService {
   constructor() {
     // Configure nodemailer transporter
-    this.transporter = nodemailer.createTransporter({
+    this.transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user: 'glamouronline2024@gmail.com',

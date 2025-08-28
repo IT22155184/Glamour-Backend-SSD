@@ -1,6 +1,6 @@
 import express from "express";
 import Joi from "joi";
-import { Emp } from "../models/empModel.js";
+import { User } from "../models/userModel.js";
 import empAuthController from "../controllers/empAuth.controller.js";
 
 const router = express.Router();
@@ -14,7 +14,7 @@ router.get('/:id', async (request, response) => {
       
       const id = request.params.id;
   
-      const adminprofileInfo = await Emp.findById(id);
+      const adminprofileInfo = await User.findOne({ _id: id, role: 'employee' });
   
       response.status(200).json(adminprofileInfo);
     } catch (error) {

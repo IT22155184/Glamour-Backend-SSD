@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { Emp } from "../models/empModel.js";
+import { User } from "../models/userModel.js";
 
 class EmpAuthService {
   /**
@@ -19,8 +19,8 @@ class EmpAuthService {
           if (err) {
             resolve({ status: false, message: "Invalid token" });
           } else {
-            const emp = await Emp.findById(data._id);
-            if (emp) {
+            const emp = await User.findById(data._id);
+            if (emp && emp.role === 'employee') {
               resolve({ status: true, empID: emp._id, emp });
             } else {
               resolve({ status: false, message: "Employee not found" });
@@ -42,7 +42,7 @@ class EmpAuthService {
   async authenticateEmployee(email, password) {
     try {
       // Find employee by email
-      const emp = await Emp.findOne({ email });
+      const emp = await User.findOne({ email, role: 'employee' });
       if (!emp) {
         return { success: false, status: 401, message: "Invalid Email or Password" };
       }

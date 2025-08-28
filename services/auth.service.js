@@ -20,7 +20,7 @@ class AuthService {
             resolve({ status: false, message: "Invalid token" });
           } else {
             const user = await User.findById(data._id);
-            if (user) {
+            if (user && user.role === 'customer') {
               resolve({ status: true, userID: user._id, user });
             } else {
               resolve({ status: false, message: "User not found" });
@@ -42,7 +42,7 @@ class AuthService {
   async authenticateUser(email, password) {
     try {
       // Find user by email
-      const user = await User.findOne({ email });
+      const user = await User.findOne({ email, role: 'customer' });
       if (!user) {
         return { success: false, status: 401, message: "Invalid Email or Password" };
       }

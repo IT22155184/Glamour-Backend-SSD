@@ -25,7 +25,7 @@ class UserService {
       const hashPassword = await bcrypt.hash(userData.password, salt);
 
       // Create new user
-      const newUser = new User({ ...userData, password: hashPassword });
+      const newUser = new User({ ...userData, password: hashPassword, role: 'customer' });
       await newUser.save();
 
       return { 
@@ -58,7 +58,7 @@ class UserService {
   async updateUser(userId, updateData) {
     try {
       // Find the user by ID
-      const user = await User.findById(userId);
+      const user = await User.findOne({ _id: userId, role: 'customer' });
       if (!user) {
         return { 
           success: false, 
@@ -133,7 +133,7 @@ class UserService {
    */
   async deleteUser(userId) {
     try {
-      const user = await User.findByIdAndDelete(userId);
+      const user = await User.findOneAndDelete({ _id: userId, role: 'customer' });
 
       if (!user) {
         return { 
@@ -174,7 +174,7 @@ class UserService {
    */
   async getUserById(userId) {
     try {
-      const user = await User.findById(userId);
+      const user = await User.findOne({ _id: userId, role: 'customer' });
       
       if (!user) {
         return { 
