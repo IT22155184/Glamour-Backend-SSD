@@ -26,6 +26,12 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    role: {
+      type: String,
+      enum: ['customer', 'employee'],
+      default: 'customer',
+      required: true,
+    },
   },
   {
     timestamps: true,
@@ -33,7 +39,7 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.methods.generateAuthToken = function () {
-  const token = jwt.sign({ _id: this._id }, process.env.JWTPRIVATEKEY, {
+  const token = jwt.sign({ _id: this._id, role: this.role }, process.env.JWTPRIVATEKEY, {
     expiresIn: "7d",
   });
   return token;
@@ -48,6 +54,7 @@ export const validate = (data) => {
     email: Joi.string().email().required().label("Email"),
     phoneNumber: Joi.string().pattern(/^[0-9]{10}$/).required().label("Phone Number"),
     password: passwordComplexity().required().label("Password"),
+    role: Joi.string().valid('customer', 'employee').label("Role"),
   });
   return schema.validate(data);
 };
