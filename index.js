@@ -1,21 +1,17 @@
 import express from "express";
-import { PORT, MONGO_URI } from "./config.js";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from 'dotenv';
-import itemsRoute from "./routes/itemsRoute.js";
-import cartRoute from "./routes/cartRoute.js";
-import cusItemsRoute from "./routes/cusItemsRoute.js";
-import reviewRoute from "./routes/reviewRoute.js";
-import deliveryInfoRoute from './routes/deliveryInfoRoute.js';
-import orderRoute from './routes/orderRoute.js';
-import paymentRoute from './routes/paymentRoute.js';
-import bodyMeasurementRoute from './routes/bodyMeasurementRoute.js';
-import usersRoute from './routes/usersRoute.js';
-import authRoute from './routes/auth.js';
-import empRoute from './routes/empRoute.js';
-import empAuthRoute from './routes/empAuth.js';
-
+import itemsRoute from "./routes/items.route.js";
+import cartRoute from "./routes/cart.route.js";
+import cusItemsRoute from "./routes/cusItems.route.js";
+import reviewRoute from "./routes/review.route.js";
+import deliveryInfoRoute from './routes/deliveryInfo.route.js';
+import orderRoute from './routes/order.route.js';
+import paymentRoute from './routes/payment.route.js';
+import bodyMeasurementRoute from './routes/bodyMeasurement.route.js';
+import usersRoute from './routes/users.route.js';
+import authRoute from './routes/auth.route.js';
 
 const app = express();
 dotenv.config();
@@ -23,11 +19,6 @@ app.use(express.json({limit: '10mb'}));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.json());
 app.use(cors());
-app.get("/", (req, res) => {
-  console.log(req);
-  return res.status(234).send("Connection Successful!");
-});
-
 
 app.use("/items", itemsRoute);
 app.use("/cart", cartRoute);
@@ -38,14 +29,16 @@ app.use("/orders", orderRoute);
 app.use("/payment", paymentRoute);
 app.use('/measurements', bodyMeasurementRoute);
 app.use('/users', usersRoute);
-app.use('/login', authRoute);
-app.use('/emps', empRoute);
-app.use('/empLogin', empAuthRoute);
+app.use('/auth', authRoute);
+
+const MONGO_URI = process.env.MONGO_URI;
+const PORT = process.env.PORT || 5000;
 
 mongoose
   .connect(MONGO_URI)
   .then(() => {
     console.log("Connected to MongoDB");
+    console.log('Port value:', PORT, typeof PORT);
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });
