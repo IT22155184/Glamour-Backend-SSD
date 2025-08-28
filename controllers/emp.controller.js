@@ -1,4 +1,4 @@
-import empService from "../services/empService.js";
+import empService from "../services/emp.service.js";
 
 class EmpController {
   /**

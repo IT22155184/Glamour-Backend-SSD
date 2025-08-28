@@ -1,4 +1,4 @@
-import itemService from "../services/itemService.js";
+import itemService from "../services/item.service.js";
 
 class ItemController {
   /**

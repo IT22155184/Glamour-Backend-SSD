@@ -1,7 +1,7 @@
 import express from "express";
 import Joi from "joi";
 import { Emp } from "../models/empModel.js";
-import empAuthController from "../controllers/empAuthController.js";
+import empAuthController from "../controllers/empAuth.controller.js";
 
 const router = express.Router();
 

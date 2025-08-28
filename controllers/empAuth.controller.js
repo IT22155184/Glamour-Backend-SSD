@@ -1,4 +1,4 @@
-import empAuthService from "../services/empAuthService.js";
+import empAuthService from "../services/empAuth.service.js";
 
 class EmpAuthController {
   /**
