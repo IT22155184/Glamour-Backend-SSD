@@ -45,7 +45,7 @@ class AuthService {
    * @param {string} email - User email
    * @param {string} password - User password
    * @param {string} userType - Type of user ('customer' or 'employee')
-   * @returns {Object} - Authentication result with token or error
+   * @returns {Object} - Authentication result with tokens and user info
    */
   async authenticate(email, password, userType = 'customer') {
     try {
@@ -61,14 +61,24 @@ class AuthService {
         return { success: false, status: 401, message: "Invalid Email or Password" };
       }
 
-      console.log("Authenticated User:", user);
-      // Generate token
-      const token = user.generateAuthToken();
+      console.log("Authenticated User:", user.email);
+      
+      // Generate tokens
+      const accessToken = user.generateAuthToken();
+      const refreshToken = user.generateRefreshToken();
+      
+      // Save refresh token to user
+      await user.addRefreshToken(refreshToken);
+      
+      // Get user info without sensitive data
+      const userInfo = user.toJSON();
       
       return { 
         success: true, 
         status: 200, 
-        token, 
+        accessToken,
+        refreshToken,
+        user: userInfo,
         message: "Logged in successfully",
       };
     } catch (error) {
@@ -77,6 +87,110 @@ class AuthService {
         status: 500, 
         message: "Internal Server Error", 
         error: error.message 
+      };
+    }
+  }
+
+  /**
+   * Refresh access token using refresh token
+   * @param {string} refreshToken - Refresh token
+   * @returns {Object} - New access token or error
+   */
+  async refreshAccessToken(refreshToken) {
+    try {
+      if (!refreshToken) {
+        return { success: false, status: 401, message: "Refresh token is required" };
+      }
+
+      // Verify refresh token
+      const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET || process.env.JWTPRIVATEKEY);
+      
+      // Find user and check if refresh token exists
+      const user = await User.findById(decoded._id);
+      if (!user) {
+        return { success: false, status: 401, message: "Invalid refresh token" };
+      }
+
+      const tokenExists = user.refreshTokens.some(tokenObj => tokenObj.token === refreshToken);
+      if (!tokenExists) {
+        return { success: false, status: 401, message: "Invalid refresh token" };
+      }
+
+      // Generate new access token
+      const newAccessToken = user.generateAuthToken();
+      
+      return {
+        success: true,
+        status: 200,
+        accessToken: newAccessToken,
+        message: "Token refreshed successfully"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        status: 401,
+        message: "Invalid refresh token",
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Logout user by removing refresh token
+   * @param {string} refreshToken - Refresh token to remove
+   * @param {string} userId - User ID
+   * @returns {Object} - Logout result
+   */
+  async logout(refreshToken, userId) {
+    try {
+      const user = await User.findById(userId);
+      if (!user) {
+        return { success: false, status: 404, message: "User not found" };
+      }
+
+      await user.removeRefreshToken(refreshToken);
+      
+      return {
+        success: true,
+        status: 200,
+        message: "Logged out successfully"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        status: 500,
+        message: "Internal Server Error",
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Logout from all devices by removing all refresh tokens
+   * @param {string} userId - User ID
+   * @returns {Object} - Logout result
+   */
+  async logoutAll(userId) {
+    try {
+      const user = await User.findById(userId);
+      if (!user) {
+        return { success: false, status: 404, message: "User not found" };
+      }
+
+      user.refreshTokens = [];
+      await user.save();
+      
+      return {
+        success: true,
+        status: 200,
+        message: "Logged out from all devices successfully"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        status: 500,
+        message: "Internal Server Error",
+        error: error.message
       };
     }
   }

@@ -32,6 +32,17 @@ const userSchema = new mongoose.Schema(
       default: 'customer',
       required: true,
     },
+    refreshTokens: [{
+      token: {
+        type: String,
+        required: true,
+      },
+      createdAt: {
+        type: Date,
+        default: Date.now,
+        expires: 2592000
+      }
+    }],
   },
   {
     timestamps: true,
@@ -40,9 +51,33 @@ const userSchema = new mongoose.Schema(
 
 userSchema.methods.generateAuthToken = function () {
   const token = jwt.sign({ _id: this._id, role: this.role }, process.env.JWTPRIVATEKEY, {
-    expiresIn: "7d",
+    expiresIn: "15m",
   });
   return token;
+};
+
+userSchema.methods.generateRefreshToken = function () {
+  const refreshToken = jwt.sign({ _id: this._id, role: this.role }, process.env.REFRESH_TOKEN_SECRET || process.env.JWTPRIVATEKEY, {
+    expiresIn: "30d", // Long-lived refresh token
+  });
+  return refreshToken;
+};
+
+userSchema.methods.addRefreshToken = function (refreshToken) {
+  this.refreshTokens.push({ token: refreshToken });
+  return this.save();
+};
+
+userSchema.methods.removeRefreshToken = function (refreshToken) {
+  this.refreshTokens = this.refreshTokens.filter(tokenObj => tokenObj.token !== refreshToken);
+  return this.save();
+};
+
+userSchema.methods.toJSON = function () {
+  const user = this.toObject();
+  delete user.password;
+  delete user.refreshTokens;
+  return user;
 };
 
 export const User = mongoose.model("User", userSchema);
