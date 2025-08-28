@@ -1,53 +1,13 @@
 import express from "express";
-import bcrypt from "bcrypt";
 import Joi from "joi";
 import { Emp } from "../models/empModel.js";
-import jwt from "jsonwebtoken";
+import empAuthController from "../controllers/empAuthController.js";
 
 const router = express.Router();
 
-router.post('/empAuth', async (req, res) => {
-	const token = req.body.token;
-	if (!token) {
-	  return res.json({ status: false });
-	}
-  
-	jwt.verify(token, process.env.JWTPRIVATEKEY, async (err, data) => {
-	  if (err) {
-		return res.json({ status: false });
-	  } else {
-		const emp = await Emp.findById(data._id);  // Use data._id if you set _id in the token payload
-		if (emp) {
-		  return res.json({ status: true, empID: emp._id });
-		} else {
-		  return res.json({ status: false });
-		}
-	  }
-	});
-  });
+router.post('/empAuth', empAuthController.verifyToken);
 
-router.post("/", async (request, response) => {
-	try {
-		// const { error } = validate(request.body);
-		// if (error) {
-		// 	return response.status(400).send({ message: error.details[0].message });
-		// }
-		const emp = await Emp.findOne({ email: request.body.email });
-		if (!emp) {
-			return response.status(401).send({ message: "Invalid Email or Password" });
-		}
-
-		const validPassword = await bcrypt.compare(request.body.password, emp.password);
-		if (!validPassword) {
-			return response.status(401).send({ message: "Invalid Email or Password" });
-		}
-		const token = emp.generateAuthToken();
-		return response.status(200).send({ token: token, message: "Logged in successfully" });
-	} catch (error) {
-		console.log(error.message);
-		return response.status(500).send({ message: "Internal Server Error" });
-	}
-});
+router.post("/", empAuthController.login);
 
 router.get('/:id', async (request, response) => {
     try {

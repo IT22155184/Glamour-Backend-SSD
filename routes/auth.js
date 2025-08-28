@@ -1,52 +1,12 @@
 import express from "express";
-import bcrypt from "bcrypt";
 import Joi from "joi";
 import { User } from "../models/userModel.js";
-import jwt from "jsonwebtoken";
+import authController from "../controllers/authController.js";
 
 const router = express.Router();
-router.post('/auth', async (req, res) => {
-	const token = req.body.token;
-	if (!token) {
-	  return res.json({ status: false });
-	}
-  
-	jwt.verify(token, process.env.JWTPRIVATEKEY, async (err, data) => {
-	  if (err) {
-		return res.json({ status: false });
-	  } else {
-		const user = await User.findById(data._id);  // Use data._id if you set _id in the token payload
-		if (user) {
-		  return res.json({ status: true, userID: user._id });
-		} else {
-		  return res.json({ status: false });
-		}
-	  }
-	});
-  });
+router.post('/auth', authController.verifyToken);
 
-router.post("/", async (request, response) => {
-	try {
-		// const { error } = validate(request.body);
-		// if (error) {
-		// 	return response.status(400).send({ message: error.details[0].message });
-		// }
-		const user = await User.findOne({ email: request.body.email });
-		if (!user) {
-			return response.status(401).send({ message: "Invalid Email or Password" });
-		}
-
-		const validPassword = await bcrypt.compare(request.body.password, user.password);
-		if (!validPassword) {
-			return response.status(401).send({ message: "Invalid Email or Password" });
-		}
-		const token = user.generateAuthToken();
-		return response.status(200).send({ token: token, message: "Logged in successfully" });
-	} catch (error) {
-		console.log(error.message);
-		return response.status(500).send({ message: "Internal Server Error" });
-	}
-});
+router.post("/", authController.login);
 
 router.get('/:id', async (request, response) => {
     try {
