@@ -6,9 +6,10 @@ class AuthService {
   /**
    * Verify JWT token and get user information
    * @param {string} token - JWT token to verify
+   * @param {string} userType - Type of user ('customer' or 'employee')
    * @returns {Object} - User information or error status
    */
-  async verifyToken(token) {
+  async verifyToken(token, userType = 'customer') {
     try {
       if (!token) {
         return { status: false, message: "No token provided" };
@@ -20,10 +21,16 @@ class AuthService {
             resolve({ status: false, message: "Invalid token" });
           } else {
             const user = await User.findById(data._id);
-            if (user && user.role === 'customer') {
-              resolve({ status: true, userID: user._id, user });
+            if (user && user.role === userType) {
+              const responseKey = userType === 'employee' ? 'empID' : 'userID';
+              resolve({ 
+                status: true, 
+                [responseKey]: user._id, 
+                user,
+                [userType]: user 
+              });
             } else {
-              resolve({ status: false, message: "User not found" });
+              resolve({ status: false, message: `${userType.charAt(0).toUpperCase() + userType.slice(1)} not found` });
             }
           }
         });
@@ -37,12 +44,13 @@ class AuthService {
    * Authenticate user with email and password
    * @param {string} email - User email
    * @param {string} password - User password
+   * @param {string} userType - Type of user ('customer' or 'employee')
    * @returns {Object} - Authentication result with token or error
    */
-  async authenticateUser(email, password) {
+  async authenticate(email, password, userType = 'customer') {
     try {
-      // Find user by email
-      const user = await User.findOne({ email, role: 'customer' });
+      // Find user by email and role
+      const user = await User.findOne({ email, role: userType });
       if (!user) {
         return { success: false, status: 401, message: "Invalid Email or Password" };
       }
@@ -53,19 +61,15 @@ class AuthService {
         return { success: false, status: 401, message: "Invalid Email or Password" };
       }
 
+      console.log("Authenticated User:", user);
       // Generate token
       const token = user.generateAuthToken();
+      
       return { 
         success: true, 
         status: 200, 
         token, 
         message: "Logged in successfully",
-        user: {
-          id: user._id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName
-        }
       };
     } catch (error) {
       return { 
