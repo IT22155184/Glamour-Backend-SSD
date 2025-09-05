@@ -2,7 +2,7 @@ import express from "express";
 import userController from "../controllers/user.controller.js";
 import {
   authenticateToken,
-  authorizeRoles,
+  requireEmployee,
 } from "../middleware/auth.middleware.js";
 import {
   userInputValidation,
@@ -30,7 +30,7 @@ router.put(
 router.delete(
   "/:id",
   authenticateToken,
-  authorizeRoles(["employee"]),
+  requireEmployee,
   sanitizeInput,
   userController.deleteUser
 );
@@ -40,7 +40,7 @@ router.delete(
 router.get(
   "/",
   authenticateToken,
-  authorizeRoles(["employee"]),
+  requireEmployee,
   userController.getAllUsers
 );
 
@@ -58,7 +58,7 @@ router.get(
 router.get(
   "/email/:email",
   authenticateToken,
-  authorizeRoles(["employee"]),
+  requireEmployee,
   sanitizeInput,
   userController.getUserByEmail
 );

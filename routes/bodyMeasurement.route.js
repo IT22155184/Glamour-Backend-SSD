@@ -34,7 +34,12 @@ router.put(
 );
 
 // Route for Get All Measurements from database
-router.get("/", bodyMeasurementController.getAllMeasurements);
+router.get(
+  "/",
+  authenticateToken,
+  requireEmployee,
+  bodyMeasurementController.getAllMeasurements
+);
 
 // Route for Get One Measurement from database by id
 router.get("/:id", sanitizeInput, bodyMeasurementController.getMeasurementById);
