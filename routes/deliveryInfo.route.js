@@ -6,6 +6,7 @@ import {
   sanitizeUserContent,
   sanitizeInput,
 } from "../middleware/xss.middleware.js";
+import { authenticateToken, requireEmployee } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
