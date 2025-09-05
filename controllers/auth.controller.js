@@ -11,29 +11,29 @@ class AuthController {
       const { token, userType = 'customer' } = req.body;
       
       if (!token) {
-        return res.status(400).json({ status: false, message: "Token is required" });
+        return res.status(400).json({ success: false, message: "Token is required" });
       }
 
       // Validate userType
       if (!['customer', 'employee'].includes(userType)) {
-        return res.status(400).json({ status: false, message: "Invalid user type. Must be 'customer' or 'employee'" });
+        return res.status(400).json({ success: false, message: "Invalid user type. Must be 'customer' or 'employee'" });
       }
 
       const result = await authService.verifyToken(token, userType);
       
       if (result.status) {
         return res.json({ 
-          status: true,
+          success: true,
           user: result.user,
           userType: result.user.role,
           userId: result.user._id
         });
       } else {
-        return res.json({ status: false, message: result.message });
+        return res.json({ success: false, message: result.message });
       }
     } catch (error) {
       console.error("Token verification error:", error);
-      return res.status(500).json({ status: false, message: "Internal server error" });
+      return res.status(500).json({ success: false, message: "Internal server error" });
     }
   }
 
@@ -96,6 +96,7 @@ class AuthController {
       return res.status(result.status).json({
         success: result.success,
         accessToken: result.accessToken,
+        user: result.user,
         message: result.message
       });
     } catch (error) {
@@ -156,7 +157,52 @@ class AuthController {
   }
 
   /**
-   * Get current user profile
+   * Handle Google OAuth callback
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   */
+  async googleOAuthCallback(req, res) {
+    try {
+      const user = req.user;
+      
+      if (!user) {
+        return res.status(401).json({ message: "Authentication failed" });
+      }
+
+      // Generate tokens for the authenticated user
+      const accessToken = user.generateAuthToken();
+      const refreshToken = user.generateRefreshToken();
+      
+      // Store refresh token
+      await user.addRefreshToken(refreshToken);
+
+      // For web app, set tokens as secure, HTTP-only cookies and redirect to frontend callback page
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+      
+      // Set access and refresh tokens as secure, HTTP-only cookies
+      res.cookie('accessToken', accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production', // set to true in production
+        sameSite: 'Strict',
+        maxAge: 60 * 60 * 1000 // 1 hour, adjust as needed
+      });
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days, adjust as needed
+      });
+      
+      // Redirect to frontend callback page (no tokens in URL)
+      res.redirect(`${frontendUrl}/oauth/callback`);
+    } catch (error) {
+      console.error("Google OAuth callback error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+
+  /**
+   * Get user profile
    * @param {Object} req - Express request object
    * @param {Object} res - Express response object
    */
@@ -165,17 +211,27 @@ class AuthController {
       const user = req.user;
       
       if (!user) {
-        return res.status(401).json({ message: "User not authenticated" });
+        return res.status(401).json({ 
+          success: false, 
+          message: "User not authenticated" 
+        });
       }
 
-      return res.json({
+      return res.status(200).json({
         success: true,
-        user: user.toJSON(),
-        message: "Profile retrieved successfully"
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        }
       });
     } catch (error) {
       console.error("Get profile error:", error);
-      return res.status(500).json({ message: "Internal Server Error" });
+      return res.status(500).json({ 
+        success: false, 
+        message: "Internal server error" 
+      });
     }
   }
 }

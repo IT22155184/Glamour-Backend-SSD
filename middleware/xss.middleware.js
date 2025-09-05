@@ -74,15 +74,15 @@ export const isValidBase64Image = (options = {}) => {
 export const sanitizeInput = (req, res, next) => {
   try {
     if (req.body && typeof req.body === "object") {
-      req.body = sanitizeObject(req.body);
+      req.body = sanitizeObject(req.body, ['token', 'refreshToken']);
     }
 
     if (req.query && typeof req.query === "object") {
-      req.query = sanitizeObject(req.query);
+      req.query = sanitizeObject(req.query, ['token', 'refreshToken']);
     }
 
     if (req.params && typeof req.params === "object") {
-      req.params = sanitizeObject(req.params);
+      req.params = sanitizeObject(req.params, ['token', 'refreshToken']);
     }
 
     next();
@@ -124,6 +124,68 @@ export const userInputValidation = [
     .isEmail()
     .withMessage("Please provide a valid email"),
 
+  body("phoneNumber")
+    .optional({ nullable: true, checkFalsy: true })
+    .trim()
+    .escape()
+    .isLength({ min: 0, max: 15 })
+    .withMessage("Phone number cannot exceed 15 characters")
+    .matches(/^[0-9+\-\s()]*$/)
+    .withMessage("Phone number can only contain numbers, spaces, hyphens, plus signs, and parentheses"),
+
+  body("password")
+    .optional()
+    .isLength({ min: 6 })
+    .withMessage("Password must be at least 6 characters long"),
+
+  body("address")
+    .optional()
+    .trim()
+    .escape()
+    .isLength({ max: 200 })
+    .withMessage("Address cannot exceed 200 characters"),
+];
+
+/**
+ * Validation rules for user registration (required fields)
+ */
+export const userRegistrationValidation = [
+  body("firstName")
+    .trim()
+    .escape()
+    .isLength({ min: 1, max: 50 })
+    .withMessage("First name must be between 1 and 50 characters")
+    .matches(/^[a-zA-Z\s]+$/)
+    .withMessage("First name can only contain letters and spaces"),
+
+  body("lastName")
+    .trim()
+    .escape()
+    .isLength({ min: 1, max: 50 })
+    .withMessage("Last name must be between 1 and 50 characters")
+    .matches(/^[a-zA-Z\s]+$/)
+    .withMessage("Last name can only contain letters and spaces"),
+
+  body("email")
+    .trim()
+    .normalizeEmail()
+    .isEmail()
+    .withMessage("Please provide a valid email"),
+
+  body("phoneNumber")
+    .optional({ nullable: true, checkFalsy: true })
+    .trim()
+    .escape()
+    .isLength({ min: 0, max: 15 })
+    .withMessage("Phone number cannot exceed 15 characters")
+    .matches(/^[0-9+\-\s()]*$/)
+    .withMessage("Phone number can only contain numbers, spaces, hyphens, plus signs, and parentheses"),
+
+  body("password")
+    .optional()
+    .isLength({ min: 6 })
+    .withMessage("Password must be at least 6 characters long"),
+
   body("address")
     .optional()
     .trim()
@@ -157,10 +219,12 @@ export const loginInputValidation = [
  */
 export const tokenInputValidation = [
   body("token")
-    .optional()
-    .trim()
+    .exists()
+    .withMessage("Token is required")
+    .isString()
+    .withMessage("Token must be a string")
     .isLength({ min: 1 })
-    .withMessage("Token is required"),
+    .withMessage("Token cannot be empty"),
 
   body("refreshToken")
     .trim()
@@ -482,7 +546,7 @@ export const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({
-      status: false,
+      success: false,
       message: "Validation failed",
       errors: errors.array(),
     });
