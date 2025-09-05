@@ -176,11 +176,25 @@ class AuthController {
       // Store refresh token
       await user.addRefreshToken(refreshToken);
 
-      // For web app, redirect to frontend with tokens
+      // For web app, set tokens as secure, HTTP-only cookies and redirect to frontend callback page
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-      const redirectUrl = `${frontendUrl}/oauth/callback?accessToken=${accessToken}&refreshToken=${refreshToken}&user=${encodeURIComponent(JSON.stringify(user.toJSON()))}`;
       
-      res.redirect(redirectUrl);
+      // Set access and refresh tokens as secure, HTTP-only cookies
+      res.cookie('accessToken', accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production', // set to true in production
+        sameSite: 'Strict',
+        maxAge: 60 * 60 * 1000 // 1 hour, adjust as needed
+      });
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days, adjust as needed
+      });
+      
+      // Redirect to frontend callback page (no tokens in URL)
+      res.redirect(`${frontendUrl}/oauth/callback`);
     } catch (error) {
       console.error("Google OAuth callback error:", error);
       res.status(500).json({ message: "Internal server error" });
