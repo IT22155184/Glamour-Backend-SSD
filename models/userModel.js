@@ -20,11 +20,20 @@ const userSchema = new mongoose.Schema(
     },
     phoneNumber: {
         type: String,
-        required: true,
+        required: function() {
+          return !this.googleId;
+        },
       },
     password: {
       type: String,
-      required: true,
+      required: function() {
+        return !this.googleId;
+      },
+    },
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true,
     },
     role: {
       type: String,
@@ -87,9 +96,18 @@ export const validate = (data) => {
     firstName: Joi.string().required().label("First Name"),
     lastName: Joi.string().required().label("Last Name"),
     email: Joi.string().email().required().label("Email"),
-    phoneNumber: Joi.string().pattern(/^[0-9]{10}$/).required().label("Phone Number"),
-    password: passwordComplexity().required().label("Password"),
+    phoneNumber: Joi.when('googleId', {
+      is: Joi.exist(),
+      then: Joi.string().optional(),
+      otherwise: Joi.string().pattern(/^[0-9]{10}$/).required()
+    }).label("Phone Number"),
+    password: Joi.when('googleId', {
+      is: Joi.exist(),
+      then: Joi.optional(),
+      otherwise: passwordComplexity().required()
+    }).label("Password"),
     role: Joi.string().valid('customer', 'employee').label("Role"),
+    googleId: Joi.string().optional().label("Google ID"),
   });
   return schema.validate(data);
 };

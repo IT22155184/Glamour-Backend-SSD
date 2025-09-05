@@ -21,16 +21,21 @@ class AuthService {
             resolve({ status: false, message: "Invalid token" });
           } else {
             const user = await User.findById(data._id);
-            if (user && user.role === userType) {
-              const responseKey = userType === 'employee' ? 'empID' : 'userID';
-              resolve({ 
-                status: true, 
-                [responseKey]: user._id, 
-                user,
-                [userType]: user 
-              });
+            if (user) {
+              // Check if userType matches the token's role or if it's a Google OAuth user
+              if (user.role === userType || user.googleId) {
+                const responseKey = user.role === 'employee' ? 'empID' : 'userID';
+                resolve({ 
+                  status: true, 
+                  [responseKey]: user._id, 
+                  user,
+                  [user.role]: user 
+                });
+              } else {
+                resolve({ status: false, message: `User type mismatch` });
+              }
             } else {
-              resolve({ status: false, message: `${userType.charAt(0).toUpperCase() + userType.slice(1)} not found` });
+              resolve({ status: false, message: "User not found" });
             }
           }
         });
@@ -123,6 +128,7 @@ class AuthService {
         success: true,
         status: 200,
         accessToken: newAccessToken,
+        user: user.toJSON(),
         message: "Token refreshed successfully"
       };
     } catch (error) {

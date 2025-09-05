@@ -28,23 +28,26 @@ export const sanitizeHTML = (content) => {
 /**
  * Sanitize an object recursively
  * @param {Object} obj - Object to sanitize
+ * @param {Array} skipFields - Array of field names to skip sanitization
  * @returns {Object} - Sanitized object
  */
-export const sanitizeObject = (obj) => {
+export const sanitizeObject = (obj, skipFields = []) => {
   if (typeof obj !== 'object' || obj === null) {
     return obj;
   }
   
   if (Array.isArray(obj)) {
-    return obj.map(item => sanitizeObject(item));
+    return obj.map(item => sanitizeObject(item, skipFields));
   }
   
   const sanitized = {};
   for (const [key, value] of Object.entries(obj)) {
-    if (typeof value === 'string') {
+    if (skipFields.includes(key)) {
+      sanitized[key] = value; // Skip sanitization for these fields
+    } else if (typeof value === 'string') {
       sanitized[key] = sanitizeHTML(value);
     } else if (typeof value === 'object') {
-      sanitized[key] = sanitizeObject(value);
+      sanitized[key] = sanitizeObject(value, skipFields);
     } else {
       sanitized[key] = value;
     }

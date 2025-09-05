@@ -2,18 +2,30 @@ import express from "express";
 import { body } from "express-validator";
 import authController from "../controllers/auth.controller.js";
 import userController from "../controllers/user.controller.js";
+import passport from "../config/passport.js";
 import { authenticateToken } from "../middleware/auth.middleware.js";
 import {
   sanitizeInput,
   loginInputValidation,
   tokenInputValidation,
   userInputValidation,
+  userRegistrationValidation,
   handleValidationErrors,
   sanitizeLoginContent,
   sanitizeUserContent,
 } from "../middleware/xss.middleware.js";
 
 const router = express.Router();
+
+// Google OAuth routes
+router.get('/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+router.get('/google/callback',
+  passport.authenticate('google', { failureRedirect: '/login' }),
+  authController.googleOAuthCallback
+);
 
 // Unified authentication routes
 router.post(
@@ -36,7 +48,7 @@ router.post(
 router.post(
   "/register",
   sanitizeInput,
-  userInputValidation,
+  userRegistrationValidation,
   handleValidationErrors,
   sanitizeUserContent,
   userController.createUser

@@ -4,6 +4,8 @@ import cors from "cors";
 import dotenv from 'dotenv';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import passport from './config/passport.js';
+import session from 'express-session';
 import itemsRoute from "./routes/items.route.js";
 import cartRoute from "./routes/cart.route.js";
 import cusItemsRoute from "./routes/cusItems.route.js";
@@ -44,6 +46,22 @@ const corsOptions = {
   credentials: true
 };
 app.use(cors(corsOptions));
+
+// Session middleware for Passport
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
+
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
