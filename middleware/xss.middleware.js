@@ -5,6 +5,70 @@ import {
 } from "../utils/sanitizer.js";
 
 /**
+ * Custom validation function for base64 image validation
+ * @param {string} value - The base64 string to validate
+ * @param {Object} options - Validation options
+ * @returns {boolean} - True if valid, false otherwise
+ */
+export const validateBase64Image = (value, options = {}) => {
+  const {
+    maxSizeMB = 5,
+    allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+  } = options;
+
+  if (!value || typeof value !== 'string') {
+    return false;
+  }
+
+  // Check if it's a valid base64 data URL
+  const base64Regex = /^data:image\/(jpeg|jpg|png|gif|webp);base64,/;
+  const match = value.match(base64Regex);
+
+  if (!match) {
+    return false;
+  }
+
+  const mimeType = `image/${match[1]}`;
+
+  // Check if the MIME type is allowed
+  if (!allowedTypes.includes(mimeType)) {
+    return false;
+  }
+
+  // Extract base64 data
+  const base64Data = value.split(',')[1];
+  if (!base64Data) {
+    return false;
+  }
+
+  try {
+    // Decode base64 to check size
+    const buffer = Buffer.from(base64Data, 'base64');
+    const sizeMB = buffer.length / (1024 * 1024);
+
+    if (sizeMB > maxSizeMB) {
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
+
+/**
+ * Express-validator custom validator for base64 images
+ */
+export const isValidBase64Image = (options = {}) => {
+  return (value) => {
+    if (!validateBase64Image(value, options)) {
+      throw new Error(`Invalid image. Must be a valid base64 image (${options.allowedTypes?.join(', ') || 'image/*'}) under ${options.maxSizeMB || 5}MB`);
+    }
+    return true;
+  };
+};
+
+/**
  * Middleware to sanitize request body to prevent XSS attacks
  */
 export const sanitizeInput = (req, res, next) => {
@@ -176,6 +240,14 @@ export const itemInputValidation = [
     .escape()
     .isLength({ min: 1, max: 50 })
     .withMessage("Category must be between 1 and 50 characters"),
+
+  body("image")
+    .optional()
+    .custom(isValidBase64Image({
+      maxSizeMB: 5,
+      allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+    }))
+    .withMessage("Image must be a valid image file (JPEG, PNG, WebP) under 5MB"),
 ];
 
 /**
@@ -297,7 +369,12 @@ export const paymentInputValidation = [
   body("slip")
     .trim()
     .isLength({ min: 1 })
-    .withMessage("Payment slip is required"),
+    .withMessage("Payment slip is required")
+    .custom(isValidBase64Image({
+      maxSizeMB: 10,
+      allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+    }))
+    .withMessage("Payment slip must be a valid image file (JPEG, PNG, GIF, WebP) under 10MB"),
 ];
 
 /**
