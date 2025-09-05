@@ -47,7 +47,7 @@ router.put(
 router.delete("/:id", sanitizeInput, deliveryInfoController.deleteDeliveryInfo);
 
 // Route for get all delivery info (admin use)
-router.get("/", deliveryInfoController.getAllDeliveryInfo);
+router.get("/",requireEmployee, deliveryInfoController.getAllDeliveryInfo);
 
 // Route for get delivery info by district
 router.get(

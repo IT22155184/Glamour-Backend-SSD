@@ -29,7 +29,7 @@ router.post(
 );
 
 // Route to get all the order within a month
-router.get("/monthly", orderController.getMonthlyOrders);
+router.get("/monthly", requireEmployee, orderController.getMonthlyOrders);
 
 // Route for get order by user ID
 router.get("/:userId", sanitizeInput, orderController.getOrdersByUserId);
