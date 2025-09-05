@@ -1,14 +1,72 @@
 import express from "express";
+import { body } from "express-validator";
 import authController from "../controllers/auth.controller.js";
+import userController from "../controllers/user.controller.js";
 import { authenticateToken } from "../middleware/auth.middleware.js";
+import {
+  sanitizeInput,
+  loginInputValidation,
+  tokenInputValidation,
+  userInputValidation,
+  handleValidationErrors,
+  sanitizeLoginContent,
+  sanitizeUserContent,
+} from "../middleware/xss.middleware.js";
 
 const router = express.Router();
 
 // Unified authentication routes
-router.post("/verify", authController.verifyToken);
-router.post("/login", authController.login);
-router.post("/refresh", authController.refreshToken);
-router.post("/logout", authenticateToken, authController.logout);
+router.post(
+  "/verify",
+  sanitizeInput,
+  tokenInputValidation,
+  handleValidationErrors,
+  authController.verifyToken
+);
+router.post(
+  "/login",
+  sanitizeInput,
+  loginInputValidation,
+  handleValidationErrors,
+  sanitizeLoginContent,
+  authController.login
+);
+// Route for user registration
+// Query parameter: ?userType=customer or ?userType=employee
+router.post(
+  "/register",
+  sanitizeInput,
+  userInputValidation,
+  handleValidationErrors,
+  sanitizeUserContent,
+  userController.createUser
+);
+router.post(
+  "/refresh",
+  sanitizeInput,
+  [
+    body("refreshToken")
+      .trim()
+      .isLength({ min: 1 })
+      .withMessage("Refresh token is required"),
+  ],
+  handleValidationErrors,
+  authController.refreshToken
+);
+router.post(
+  "/logout",
+  authenticateToken,
+  sanitizeInput,
+  [
+    body("refreshToken")
+      .optional()
+      .trim()
+      .isLength({ min: 1 })
+      .withMessage("Refresh token is required"),
+  ],
+  handleValidationErrors,
+  authController.logout
+);
 router.post("/logout-all", authenticateToken, authController.logoutAll);
 router.get("/profile", authenticateToken, authController.getProfile);
 

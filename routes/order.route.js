@@ -1,5 +1,11 @@
 import express from "express";
 import orderController from "../controllers/order.controller.js";
+import {
+  orderInputValidation,
+  handleValidationErrors,
+  sanitizeOrderContent,
+  sanitizeInput,
+} from "../middleware/xss.middleware.js";
 
 const router = express.Router();
 
@@ -13,15 +19,22 @@ router.get("/completed", orderController.getCompletedOrders);
 router.get("/canceled", orderController.getCanceledOrders);
 
 // Route for add order
-router.post("/", orderController.createOrder);
+router.post(
+  "/",
+  sanitizeInput,
+  orderInputValidation,
+  handleValidationErrors,
+  sanitizeOrderContent,
+  orderController.createOrder
+);
 
 // Route to get all the order within a month
 router.get("/monthly", orderController.getMonthlyOrders);
 
 // Route for get order by user ID
-router.get("/:userId", orderController.getOrdersByUserId);
+router.get("/:userId", sanitizeInput, orderController.getOrdersByUserId);
 
 // Route for update order
-router.put("/:userId", orderController.updateOrder);
+router.put("/:userId", sanitizeInput, orderController.updateOrder);
 
 export default router;

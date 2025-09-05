@@ -1,5 +1,6 @@
 import express from "express";
 import cusItemsController from "../controllers/cusItems.controller.js";
+import { sanitizeInput } from "../middleware/xss.middleware.js";
 
 const router = express.Router();
 
@@ -10,6 +11,6 @@ router.get("/trending", cusItemsController.getTrendingItems);
 router.get("/", cusItemsController.getAllItems);
 
 // Get item by id with dynamic pricing
-router.get("/:id", cusItemsController.getItemById);
+router.get("/:id", sanitizeInput, cusItemsController.getItemById);
 
 export default router;
