@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from 'dotenv';
 import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import itemsRoute from "./routes/items.route.js";
 import cartRoute from "./routes/cart.route.js";
 import cusItemsRoute from "./routes/cusItems.route.js";
@@ -43,6 +44,16 @@ const corsOptions = {
   credentials: true
 };
 app.use(cors(corsOptions));
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use(limiter);
 
 app.use(sanitizeInput);
 
