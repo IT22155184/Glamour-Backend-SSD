@@ -15,6 +15,7 @@ router.get("/trending", itemController.getTrendingItems);
 // Create item
 router.post(
   "/",
+  authenticateToken ,
   sanitizeInput,
   requireEmployee,
   itemInputValidation,
@@ -32,6 +33,7 @@ router.get("/:id", sanitizeInput, itemController.getItemById);
 // Update item
 router.put(
   "/:id",
+  authenticateToken,
   requireEmployee,
   sanitizeInput,
   itemInputValidation,
