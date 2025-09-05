@@ -47,9 +47,14 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
+// Ensure SESSION_SECRET is set
+if (!process.env.SESSION_SECRET) {
+  console.error("Error: SESSION_SECRET environment variable is not set.");
+  process.exit(1);
+}
 // Session middleware for Passport
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'your-secret-key',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
