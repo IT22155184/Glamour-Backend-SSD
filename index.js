@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from 'dotenv';
 import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import itemsRoute from "./routes/items.route.js";
 import cartRoute from "./routes/cart.route.js";
 import cusItemsRoute from "./routes/cusItems.route.js";
