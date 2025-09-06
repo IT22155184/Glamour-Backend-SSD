@@ -9,6 +9,7 @@ import {
 import {
   authenticateToken,
   requireEmployee,
+  requireCustomer,
 } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
