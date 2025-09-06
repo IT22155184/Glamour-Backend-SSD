@@ -44,7 +44,6 @@ router.post(
   authController.login
 );
 // Route for user registration
-// Query parameter: ?userType=customer or ?userType=employee
 router.post(
   "/register",
   sanitizeInput,
