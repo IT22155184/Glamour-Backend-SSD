@@ -5,7 +5,11 @@ import {
   bodyMeasurementValidation,
   handleValidationErrors,
 } from "../middleware/xss.middleware.js";
-import { authenticateToken, requireEmployee } from "../middleware/auth.middleware.js";
+import {
+  authenticateToken,
+  requireEmployee,
+  requireCustomer,
+} from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
@@ -28,6 +32,8 @@ router.post(
 // Update a body measurement
 router.put(
   "/:id",
+  authenticateToken,
+  requireCustomer,
   sanitizeInput,
   bodyMeasurementValidation,
   handleValidationErrors,
@@ -43,11 +49,19 @@ router.get(
 );
 
 // Route for Get One Measurement from database by id
-router.get("/:id", sanitizeInput, bodyMeasurementController.getMeasurementById);
+router.get(
+  "/:id",
+  authenticateToken,
+  requireCustomer,
+  sanitizeInput,
+  bodyMeasurementController.getMeasurementById
+);
 
 // Route to get measurement by userID (using MeasurementID)
 router.get(
   "/user/:userID",
+  authenticateToken,
+  requireCustomer,
   sanitizeInput,
   bodyMeasurementController.getMeasurementByUserId
 );
@@ -55,6 +69,8 @@ router.get(
 // Route for delete a Measurement
 router.delete(
   "/:id",
+  authenticateToken,
+  requireCustomer,
   sanitizeInput,
   bodyMeasurementController.deleteMeasurement
 );

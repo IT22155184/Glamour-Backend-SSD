@@ -6,7 +6,10 @@ import {
   sanitizeItemContent,
   sanitizeInput,
 } from "../middleware/xss.middleware.js";
-import { authenticateToken, requireEmployee } from "../middleware/auth.middleware.js";
+import {
+  authenticateToken,
+  requireEmployee,
+} from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
@@ -16,7 +19,7 @@ router.get("/trending", itemController.getTrendingItems);
 // Create item
 router.post(
   "/",
-  authenticateToken ,
+  authenticateToken,
   sanitizeInput,
   requireEmployee,
   itemInputValidation,
@@ -44,6 +47,12 @@ router.put(
 );
 
 // Delete item
-router.delete("/:id", sanitizeInput, itemController.deleteItem);
+router.delete(
+  "/:id",
+  authenticateToken,
+  requireEmployee,
+  sanitizeInput,
+  itemController.deleteItem
+);
 
 export default router;
