@@ -183,13 +183,13 @@ class AuthController {
       res.cookie('accessToken', accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production', // set to true in production
-        sameSite: 'Strict',
+        sameSite: 'Lax',
         maxAge: 60 * 60 * 1000 // 1 hour, adjust as needed
       });
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'Strict',
+        sameSite: 'Lax',
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days, adjust as needed
       });
       
@@ -221,9 +221,13 @@ class AuthController {
         success: true,
         user: {
           _id: user._id,
-          name: user.name,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          name: user.name || `${user.firstName} ${user.lastName}`.trim(),
           email: user.email,
+          phoneNumber: user.phoneNumber,
           role: user.role,
+          googleId: user.googleId
         }
       });
     } catch (error) {
