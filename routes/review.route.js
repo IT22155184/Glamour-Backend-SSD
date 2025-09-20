@@ -6,12 +6,18 @@ import {
   sanitizeReviewContent,
   sanitizeInput,
 } from "../middleware/xss.middleware.js";
+import {
+  authenticateToken,
+  requireCustomer,
+} from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
 // Add a review
 router.post(
   "/:id",
+  authenticateToken,
+  requireCustomer,
   sanitizeInput,
   reviewInputValidation,
   handleValidationErrors,
@@ -25,6 +31,8 @@ router.get("/:id", sanitizeInput, reviewController.getReviews);
 // Update a review
 router.put(
   "/:id/:reviewId",
+  authenticateToken,
+  requireCustomer,
   sanitizeInput,
   reviewInputValidation,
   handleValidationErrors,
@@ -33,12 +41,30 @@ router.put(
 );
 
 // Delete a review
-router.delete("/:id/:reviewId", sanitizeInput, reviewController.deleteReview);
+router.delete(
+  "/:id/:reviewId",
+  authenticateToken,
+  requireCustomer,
+  sanitizeInput,
+  reviewController.deleteReview
+);
 
 // Get a specific review by ID
-router.get("/:id/:reviewId", sanitizeInput, reviewController.getReviewById);
+router.get(
+  "/:id/:reviewId",
+  authenticateToken,
+  requireCustomer,
+  sanitizeInput,
+  reviewController.getReviewById
+);
 
 // Get reviews by user ID
-router.get("/user/:userId", sanitizeInput, reviewController.getReviewsByUserId);
+router.get(
+  "/user/:userId",
+  authenticateToken,
+  requireCustomer,
+  sanitizeInput,
+  reviewController.getReviewsByUserId
+);
 
 export default router;

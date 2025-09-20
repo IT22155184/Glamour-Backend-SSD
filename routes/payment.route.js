@@ -6,12 +6,18 @@ import {
   sanitizePaymentContent,
   sanitizeInput,
 } from "../middleware/xss.middleware.js";
+import {
+  authenticateToken,
+  requireCustomer,
+} from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
 //Route for add payment
 router.post(
   "/",
+  authenticateToken,
+  requireCustomer,
   sanitizeInput,
   paymentInputValidation,
   handleValidationErrors,
