@@ -8,6 +8,7 @@ import {
   sanitizeInput,
   loginInputValidation,
   tokenInputValidation,
+  tokenVerifyValidation,
   userInputValidation,
   userRegistrationValidation,
   handleValidationErrors,
@@ -31,7 +32,7 @@ router.get('/google/callback',
 router.post(
   "/verify",
   sanitizeInput,
-  tokenInputValidation,
+  tokenVerifyValidation,
   handleValidationErrors,
   authController.verifyToken
 );

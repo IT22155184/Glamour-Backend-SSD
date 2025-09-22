@@ -178,12 +178,6 @@ class UserService {
       // Also delete associated measurement if exists (only for customers)
       if (userType === 'customer') {
         const measurement = await Measurement.findOneAndDelete({ MeasurementID: user._id });
-
-        if (!measurement) {
-          console.log("No measurement found for this user.");
-        } else {
-          console.log("Measurement deleted successfully.");
-        }
       }
 
       return { 

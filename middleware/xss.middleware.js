@@ -238,6 +238,35 @@ export const tokenInputValidation = [
 ];
 
 /**
+ * Validation rules for token verification only (without refresh token)
+ */
+export const tokenVerifyValidation = [
+  body("token")
+    .exists()
+    .withMessage("Token is required")
+    .custom((value) => {
+      if (value === null || value === undefined) {
+        throw new Error("Token is null or undefined - check if token exists in localStorage");
+      }
+      if (value === "null" || value === "undefined") {
+        throw new Error("Token is the string 'null' or 'undefined' - token may not exist in localStorage");
+      }
+      if (typeof value !== 'string') {
+        throw new Error("Token must be a string");
+      }
+      if (value.trim().length === 0) {
+        throw new Error("Token cannot be empty");
+      }
+      return true;
+    }),
+
+  body("userType")
+    .optional()
+    .isIn(["customer", "employee"])
+    .withMessage("User type must be customer or employee"),
+];
+
+/**
  * Validation rules for review input
  */
 export const reviewInputValidation = [
@@ -362,7 +391,7 @@ export const bodyMeasurementValidation = [
  * Validation rules for cart input
  */
 export const cartInputValidation = [
-  body("userId").trim().isLength({ min: 1 }).withMessage("User ID is required"),
+  // userId is taken from URL params, not body
 
   body("items")
     .isArray({ min: 1 })
