@@ -141,7 +141,6 @@ export const userInputValidation = [
   body("address")
     .optional()
     .trim()
-    .escape()
     .isLength({ max: 200 })
     .withMessage("Address cannot exceed 200 characters"),
 ];
@@ -189,7 +188,6 @@ export const userRegistrationValidation = [
   body("address")
     .optional()
     .trim()
-    .escape()
     .isLength({ max: 200 })
     .withMessage("Address cannot exceed 200 characters"),
 ];
@@ -230,6 +228,35 @@ export const tokenInputValidation = [
     .trim()
     .isLength({ min: 1 })
     .withMessage("Refresh token is required"),
+
+  body("userType")
+    .optional()
+    .isIn(["customer", "employee"])
+    .withMessage("User type must be customer or employee"),
+];
+
+/**
+ * Validation rules for token verification only (without refresh token)
+ */
+export const tokenVerifyValidation = [
+  body("token")
+    .exists()
+    .withMessage("Token is required")
+    .custom((value) => {
+      if (value === null || value === undefined) {
+        throw new Error("Token is null or undefined - check if token exists in localStorage");
+      }
+      if (value === "null" || value === "undefined") {
+        throw new Error("Token is the string 'null' or 'undefined' - token may not exist in localStorage");
+      }
+      if (typeof value !== 'string') {
+        throw new Error("Token must be a string");
+      }
+      if (value.trim().length === 0) {
+        throw new Error("Token cannot be empty");
+      }
+      return true;
+    }),
 
   body("userType")
     .optional()
@@ -347,22 +374,46 @@ export const bodyMeasurementValidation = [
     .isNumeric()
     .withMessage("ShoulderWidth must be a number"),
 
-  body("TopSize")
-    .trim()
-    .isLength({ min: 1 })
-    .withMessage("TopSize is required"),
+  // TopSize and PantSize are computed on the server; do not require in requests
+  body("TopSize").optional().trim().isLength({ min: 0 }).withMessage("TopSize not required"),
 
-  body("PantSize")
-    .trim()
-    .isLength({ min: 1 })
-    .withMessage("PantSize is required"),
+  body("PantSize").optional().trim().isLength({ min: 0 }).withMessage("PantSize not required"),
+];
+
+// Separate validation for create vs update
+export const bodyMeasurementCreateValidation = [
+  body("MeasurementID").trim().isLength({ min: 1 }).withMessage("MeasurementID is required"),
+  body("UniqueName").trim().isLength({ min: 1 }).withMessage("UniqueName is required"),
+  body("Gender").trim().isIn(["Male", "Female", "Other"]).withMessage("Gender must be Male, Female, or Other"),
+  body("Bust").isNumeric().withMessage("Bust must be a number"),
+  body("UnderBust").isNumeric().withMessage("UnderBust must be a number"),
+  body("NeckBase").isNumeric().withMessage("NeckBase must be a number"),
+  body("Waist").isNumeric().withMessage("Waist must be a number"),
+  body("Hip").isNumeric().withMessage("Hip must be a number"),
+  body("ShoulderWidth").isNumeric().withMessage("ShoulderWidth must be a number"),
+  body("TopSize").optional().trim().isLength({ min: 0 }).withMessage("TopSize not required"),
+  body("PantSize").optional().trim().isLength({ min: 0 }).withMessage("PantSize not required"),
+];
+
+export const bodyMeasurementUpdateValidation = [
+  // Do not require MeasurementID on update
+  body("UniqueName").optional().trim().isLength({ min: 1 }).withMessage("UniqueName must not be empty when provided"),
+  body("Gender").trim().isIn(["Male", "Female", "Other"]).withMessage("Gender must be Male, Female, or Other"),
+  body("Bust").isNumeric().withMessage("Bust must be a number"),
+  body("UnderBust").optional().isNumeric().withMessage("UnderBust must be a number"),
+  body("NeckBase").isNumeric().withMessage("NeckBase must be a number"),
+  body("Waist").isNumeric().withMessage("Waist must be a number"),
+  body("Hip").isNumeric().withMessage("Hip must be a number"),
+  body("ShoulderWidth").isNumeric().withMessage("ShoulderWidth must be a number"),
+  body("TopSize").optional().trim().isLength({ min: 0 }).withMessage("TopSize not required"),
+  body("PantSize").optional().trim().isLength({ min: 0 }).withMessage("PantSize not required"),
 ];
 
 /**
  * Validation rules for cart input
  */
 export const cartInputValidation = [
-  body("userId").trim().isLength({ min: 1 }).withMessage("User ID is required"),
+  // userId is taken from URL params, not body
 
   body("items")
     .isArray({ min: 1 })

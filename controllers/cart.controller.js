@@ -60,7 +60,16 @@ class CartController {
   async addItemToCart(req, res) {
     try {
       const { userId } = req.params;
-      const result = await cartService.addItemToCart(userId, req.body);
+      // Frontend sends { items: [ { product, quantity, color, size } ] }
+      const firstItem = Array.isArray(req.body?.items) && req.body.items.length > 0
+        ? req.body.items[0]
+        : null;
+
+      if (!firstItem) {
+        return res.status(400).json({ message: "No items provided" });
+      }
+
+      const result = await cartService.addItemToCart(userId, firstItem);
       
       if (result.success) {
         return res.status(result.status).json(result.cart);

@@ -253,10 +253,11 @@ class CartService {
       const cart = await Cart.findOne({ userId: userId }).populate("items.product");
 
       if (!cart) {
+        const newCart = await Cart.create({ userId: userId, items: [] });
         return {
-          success: false,
-          status: 404,
-          message: "Cart not found"
+          success: true,
+          status: 200,
+          cartItems: []
         };
       }
 

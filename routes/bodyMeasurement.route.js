@@ -3,6 +3,8 @@ import bodyMeasurementController from "../controllers/bodyMeasurement.controller
 import {
   sanitizeInput,
   bodyMeasurementValidation,
+  bodyMeasurementCreateValidation,
+  bodyMeasurementUpdateValidation,
   handleValidationErrors,
 } from "../middleware/xss.middleware.js";
 import {
@@ -24,7 +26,7 @@ router.get(
 router.post(
   "/",
   sanitizeInput,
-  bodyMeasurementValidation,
+  bodyMeasurementCreateValidation,
   handleValidationErrors,
   bodyMeasurementController.createMeasurement
 );
@@ -35,7 +37,7 @@ router.put(
   authenticateToken,
   requireCustomer,
   sanitizeInput,
-  bodyMeasurementValidation,
+  bodyMeasurementUpdateValidation,
   handleValidationErrors,
   bodyMeasurementController.updateMeasurement
 );

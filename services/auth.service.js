@@ -65,8 +65,6 @@ class AuthService {
       if (!validPassword) {
         return { success: false, status: 401, message: "Invalid Email or Password" };
       }
-
-      console.log("Authenticated User:", user.email);
       
       // Generate tokens
       const accessToken = user.generateAuthToken();
