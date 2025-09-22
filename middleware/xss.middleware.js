@@ -141,7 +141,6 @@ export const userInputValidation = [
   body("address")
     .optional()
     .trim()
-    .escape()
     .isLength({ max: 200 })
     .withMessage("Address cannot exceed 200 characters"),
 ];
@@ -189,7 +188,6 @@ export const userRegistrationValidation = [
   body("address")
     .optional()
     .trim()
-    .escape()
     .isLength({ max: 200 })
     .withMessage("Address cannot exceed 200 characters"),
 ];
@@ -376,15 +374,39 @@ export const bodyMeasurementValidation = [
     .isNumeric()
     .withMessage("ShoulderWidth must be a number"),
 
-  body("TopSize")
-    .trim()
-    .isLength({ min: 1 })
-    .withMessage("TopSize is required"),
+  // TopSize and PantSize are computed on the server; do not require in requests
+  body("TopSize").optional().trim().isLength({ min: 0 }).withMessage("TopSize not required"),
 
-  body("PantSize")
-    .trim()
-    .isLength({ min: 1 })
-    .withMessage("PantSize is required"),
+  body("PantSize").optional().trim().isLength({ min: 0 }).withMessage("PantSize not required"),
+];
+
+// Separate validation for create vs update
+export const bodyMeasurementCreateValidation = [
+  body("MeasurementID").trim().isLength({ min: 1 }).withMessage("MeasurementID is required"),
+  body("UniqueName").trim().isLength({ min: 1 }).withMessage("UniqueName is required"),
+  body("Gender").trim().isIn(["Male", "Female", "Other"]).withMessage("Gender must be Male, Female, or Other"),
+  body("Bust").isNumeric().withMessage("Bust must be a number"),
+  body("UnderBust").isNumeric().withMessage("UnderBust must be a number"),
+  body("NeckBase").isNumeric().withMessage("NeckBase must be a number"),
+  body("Waist").isNumeric().withMessage("Waist must be a number"),
+  body("Hip").isNumeric().withMessage("Hip must be a number"),
+  body("ShoulderWidth").isNumeric().withMessage("ShoulderWidth must be a number"),
+  body("TopSize").optional().trim().isLength({ min: 0 }).withMessage("TopSize not required"),
+  body("PantSize").optional().trim().isLength({ min: 0 }).withMessage("PantSize not required"),
+];
+
+export const bodyMeasurementUpdateValidation = [
+  // Do not require MeasurementID on update
+  body("UniqueName").optional().trim().isLength({ min: 1 }).withMessage("UniqueName must not be empty when provided"),
+  body("Gender").trim().isIn(["Male", "Female", "Other"]).withMessage("Gender must be Male, Female, or Other"),
+  body("Bust").isNumeric().withMessage("Bust must be a number"),
+  body("UnderBust").optional().isNumeric().withMessage("UnderBust must be a number"),
+  body("NeckBase").isNumeric().withMessage("NeckBase must be a number"),
+  body("Waist").isNumeric().withMessage("Waist must be a number"),
+  body("Hip").isNumeric().withMessage("Hip must be a number"),
+  body("ShoulderWidth").isNumeric().withMessage("ShoulderWidth must be a number"),
+  body("TopSize").optional().trim().isLength({ min: 0 }).withMessage("TopSize not required"),
+  body("PantSize").optional().trim().isLength({ min: 0 }).withMessage("PantSize not required"),
 ];
 
 /**
