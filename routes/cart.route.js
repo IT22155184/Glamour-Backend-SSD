@@ -17,7 +17,7 @@ const router = express.Router();
 router.put(
   "/:userId/:id",
   authenticateToken,
-  // requireCustomer,
+  requireCustomer,
   sanitizeInput,
   cartController.removeItemFromCart
 );
@@ -26,7 +26,7 @@ router.put(
 router.put(
   "/minus/:userId/:id",
   authenticateToken,
-  // requireCustomer,
+  requireCustomer,
   sanitizeInput,
   cartController.decreaseItemQuantity
 );
@@ -35,7 +35,7 @@ router.put(
 router.put(
   "/plus/:userId/:id/:productId",
   authenticateToken,
-  // requireCustomer,
+  requireCustomer,
   sanitizeInput,
   cartController.increaseItemQuantity
 );
@@ -44,7 +44,7 @@ router.put(
 router.post(
   "/:userId",
   authenticateToken,
-  // requireCustomer,
+  requireCustomer,
   sanitizeInput,
   cartInputValidation,
   handleValidationErrors,
@@ -56,7 +56,7 @@ router.post(
 router.get(
   "/:userId",
   authenticateToken,
-  // requireCustomer,
+  requireCustomer,
   sanitizeInput,
   cartController.getCartByUserId
 );
@@ -65,7 +65,7 @@ router.get(
 router.delete(
   "/:userId",
   authenticateToken,
-  // requireCustomer,
+  requireCustomer,
   sanitizeInput,
   cartController.clearCart
 );
